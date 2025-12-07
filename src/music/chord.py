@@ -73,7 +73,7 @@ class Chord:
     
 # Testing audio playback   
 if __name__ == '__main__':
-    from src.audio.midi_io import save_chords_to_midi, play_chord_sequence
+    from src.audio.midi_io import play_chord_sequence
     
     bpm = 80
     progression = [
@@ -86,6 +86,4 @@ if __name__ == '__main__':
         Chord('C', '7', bpm=bpm)
     ]
     print("Testing chord progression")
-    save_chords_to_midi(progression, 'test_progression.mid', bpm=bpm)
-
     play_chord_sequence(progression, 'IAC Piano IN')

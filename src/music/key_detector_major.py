@@ -85,9 +85,6 @@ class KeyDetector:
             
         return NOTES[best_idx], confidence
 
-def midi_note_to_name(note: int) -> str:
-    return NOTES[note % 12]
-
 # ======================================= Real-Time Test (VMPK Input) ==========================================
 
 if __name__ == "__main__":

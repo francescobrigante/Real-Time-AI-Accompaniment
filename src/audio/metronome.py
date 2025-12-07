@@ -11,7 +11,7 @@ except ImportError:
     fluidsynth = None
 
 from src.config import EMPTY_BARS_COUNT
-from src.utils import setup_logger
+from src.utils.logger import setup_logger
 from src.audio.synth import start_audio_driver, load_soundfont
 
 # Metronome configuration

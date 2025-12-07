@@ -53,6 +53,8 @@ DELAY_START_SECONDS = 2.0
 EMPTY_BARS_COUNT = 1  # Default empty bars for metronome
 CHORDS_TO_PRECOMPUTE = 10 # Number of chords to precompute for the LSTM
 
+EXPONENTIAL_WEIGHT_FACTOR = 0.3 # Exponential weight factor for note weighting in ear module. higher = more emphasis on recent notes
+
 # ------------------------------------------------------------------
 # MUSIC THEORY MAPPINGS
 # ------------------------------------------------------------------
@@ -113,6 +115,28 @@ ROMAN_TO_SEMITONE = {
 INTERVAL_TO_ROMAN = {
     0: 'I', 1: 'IIb', 2: 'II', 3: 'IIIb', 4: 'III', 5: 'IV',
     6: 'IV#', 7: 'V', 8: 'VIb', 9: 'VI', 10: 'VIIb', 11: 'VII'
+}
+
+# Harmonic roles and transitions
+DEGREE_TO_ROLE = {
+    0: 'T', 1: 'S', 2: 'T', 3: 'S', 4: 'T', 5: 'S',
+    6: 'D', 7: 'D', 8: 'D', 9: 'T', 10: 'D', 11: 'D'
+}
+
+TONIC_CHORDS = ['I', 'vi', 'iii', 'Imaj7', 'I7', 'vi7', 'iii7', 'i', 'i7']
+SUBDOMINANT_CHORDS = ['IV', 'ii', 'IVmaj7', 'IV7', 'ii7', 'iv', 'iv7', 'II', 'II7']
+DOMINANT_CHORDS = ['V', 'vii°', 'V7', 'vii°7', 'III', 'III7', 'v', 'v7']
+
+CHORD_ROLES = {
+    'T': TONIC_CHORDS,
+    'S': SUBDOMINANT_CHORDS,
+    'D': DOMINANT_CHORDS
+}
+
+ROLE_TRANSITIONS = {
+    'T': [('S', 0.45), ('D', 0.35), ('T', 0.20)],
+    'S': [('D', 0.50), ('T', 0.30), ('S', 0.20)],
+    'D': [('T', 0.65), ('S', 0.25), ('D', 0.10)]
 }
 
 # Krumhansl-Schmuckler Major Profile (Enhanced)

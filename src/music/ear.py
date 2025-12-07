@@ -9,11 +9,7 @@ import random
 from typing import List, Tuple, Dict, Optional
 from math import exp
 
-from src.config import NOTES
-from src.utils.music_theory import (
-    roman_to_chord, chord_to_roman,
-    DEGREE_TO_ROLE, CHORD_ROLES, ROLE_TRANSITIONS
-)
+from src.config import NOTES, EXPONENTIAL_WEIGHT_FACTOR, DEGREE_TO_ROLE, CHORD_ROLES, ROLE_TRANSITIONS
 from src.utils.logger import setup_logger
 
 logger = setup_logger()
@@ -51,20 +47,18 @@ class Ear:
         return DEGREE_TO_ROLE[degree] # returns 'T', 'S', or 'D'
     
     
-    def _compute_exponential_weights(self, window_size: int) -> List[float]:
+    def _compute_exponential_weights(self, window_size: int, alpha: float = EXPONENTIAL_WEIGHT_FACTOR) -> List[float]:
         """
         Generate exponential weights for note window: recent notes get higher weight.
         Uses exponential decay formula: weight[i] = exp(alpha * i)
         where i goes from 0 (oldest) to window_size-1 (newest)
+        Exponential growth factor: higher = more emphasis on recent notes and less on old ones
         """
         if window_size == 0:
             return []
         
         if window_size == 1:
             return [1.0]
-        
-        # Exponential growth factor: higher = more emphasis on recent notes and less on old ones
-        alpha = 0.3
         
         weights = []
         for i in range(window_size):
@@ -90,7 +84,7 @@ class Ear:
             return scores
         
         # Get exponential weights
-        weights = self._compute_exponential_weights(len(note_window))
+        weights = self._compute_exponential_weights(len(note_window), alpha=EXPONENTIAL_WEIGHT_FACTOR)
         
         # Classify each note and add weighted score
         for i, (midi_note, duration) in enumerate(note_window):
@@ -137,58 +131,9 @@ class Ear:
         return chord_probs
     
     
-    # Main function to predict the next chord given the note_window
-    def predict_with_scores(self, note_window: List[Tuple[int, float]]) -> Tuple[Optional[Tuple[str, str]], Dict[str, float], str, str]:
-
-        if not note_window:
-            return None, {'T': 0.0, 'S': 0.0, 'D': 0.0}, None, None
-        
-        # 1. Compute role scores from note window
-        window_scores = self._compute_window_scores(note_window)
-        
-        if max(window_scores.values()) == 0:
-            return None, window_scores, None, None
-        
-        # 2. Deterministic choice: get current role with highest score
-        max_window_role = max(window_scores, key=window_scores.get)
-        
-        # 3. Compute next role using transition matrix defined statically
-        
-        # Check if role has transitions
-        if max_window_role in ROLE_TRANSITIONS:
-            transitions = ROLE_TRANSITIONS[max_window_role]
-            # Deterministic choice: for the current role, get next role with highest probability defined STATICALLY
-            # TODO: refine logic here to improve results or make it probabilistic
-            next_role = max(transitions, key=lambda x: x[1])[0]
-            
-        else:
-            logger.warning(f"No transitions defined for Role '{max_window_role}'. Defaulting to 'T'.")
-            next_role = 'T'
-            
-        # 4. Use next role to pick the chord list relative to that role
-        
-        chord_pool = CHORD_ROLES[next_role]
-        
-        # 5. Pick a random chord from the list # TODO: refine
-        selected_roman = random.choice(chord_pool)
-        
-        root, chord_type = roman_to_chord(self.key, selected_roman)
-        predicted_chord = (root, chord_type)
-        
-        return predicted_chord, window_scores, max_window_role, next_role
-
-
+    
 
 # ================================= Main test block  =========================================
-
-def get_chord_role(key: str, chord_tuple: Tuple[str, str]) -> str:
-    """Helper to determine which Role a chord belongs to"""
-    roman = chord_to_roman(key, chord_tuple[0], chord_tuple[1])
-    for role, chords in CHORD_ROLES.items():
-        if roman in chords:
-            return role
-    logger.warning(f"Chord '{chord_tuple}' not found in any role category.")
-    return '?'
 
 if __name__ == "__main__":
     
@@ -230,14 +175,16 @@ if __name__ == "__main__":
         )
     ]
     
-    # Run all tests
+    # Run all tests using probability distribution
     for description, note_window in test_cases:
         print(f"\n\n====== {description}")
-        predicted, scores, max_role, next_role = predictor.predict_with_scores(note_window)
-        chord_role = get_chord_role(key, predicted)
-        print(f"[INFO] Note window: {[(n, d) for n, d in note_window]}")
-        print(f"[INFO] Window role scores: {scores}")
-        print(f"[INFO] Chosen representative role: {max_role}")
-        print(f"[INFO] Next Role predicted: {next_role}")
-        print(f"[INFO] Next Predicted chord: {predicted} (belongs to {chord_role}) -> [CORRECT]" if chord_role == next_role 
-              else f"[ERROR] Next Predicted chord: {predicted} (belongs to {chord_role}) -> [MISMATCH]")
+        dist = predictor.get_chord_probability_distribution(note_window)
+        scores = predictor._compute_window_scores(note_window)
+
+        if not dist:
+            logger.info("No distribution (empty window)")
+            continue
+
+        sorted_dist = sorted(dist.items(), key=lambda x: x[1], reverse=True)
+        topk = sorted_dist[:10]
+        logger.info(f"[TEST] Top chords (roman -> prob): {topk}")

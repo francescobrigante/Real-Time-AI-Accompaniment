@@ -74,7 +74,7 @@ class MIDIListener:
     def stop(self):
         self.is_running = False
         if self.thread:
-            self.thread.join(timeout=2.0)
+            self.thread.join(timeout=1.0)
             
     def get_note_window(self):
         """Returns the current window of captured notes."""

@@ -46,6 +46,13 @@ class Predictor:
         self.future = None
         self.lock = threading.Lock()
 
+    def close(self):
+        """Shutdown async executor without blocking shutdown sequence."""
+        try:
+            self.executor.shutdown(wait=False, cancel_futures=True)
+        except Exception as e:
+            logger.error(f"[PREDICTOR] Executor shutdown failed: {e}")
+
     # change key   
     def set_key(self, key: str):
         self.key = key

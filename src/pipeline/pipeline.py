@@ -12,7 +12,8 @@ from typing import List, Optional
 
 from src.config import (
     OUTPUT_PORT, DELAY_START_SECONDS, EMPTY_BARS_COUNT,
-    DEFAULT_BPM, DEFAULT_BEATS_PER_BAR, WINDOW_SIZE, DEFAULT_MAX_SEQUENCE_LENGTH
+    DEFAULT_BPM, DEFAULT_BEATS_PER_BAR, WINDOW_SIZE, 
+    DEFAULT_MAX_SEQUENCE_LENGTH, CHORDS_TO_PRECOMPUTE
 )
 from src.utils.logger import setup_logger
 from src.utils.music_theory import compact_chord, chord_to_roman
@@ -76,6 +77,9 @@ class RealTimePipeline:
         
         # Metronome
         self.metronome = Metronome(self.bpm, self.beats_per_bar, self.empty_bars_count)
+        self.metronome_thread = None
+        self.timing_thread = None
+        self.playback = None
         
         # State
         self.chord_objects = []                     # Shared list containing the chords to play
@@ -94,7 +98,7 @@ class RealTimePipeline:
         
         # First thing to do is to seed the window and compute the initial sequence with LSTM
         self.predictor.chord_window.append(start_roman)
-        self.predictor.precomputed_sequence = self.predictor.ai.precompute_sequence(list(self.predictor.chord_window), 10) # Hardcoded constant or import
+        self.predictor.precomputed_sequence = self.predictor.ai.precompute_sequence(list(self.predictor.chord_window), CHORDS_TO_PRECOMPUTE)
         self.predictor.precomputed_idx = 0
 
         # Only then start the timer to signal the start of the pipeline
@@ -173,28 +177,32 @@ class RealTimePipeline:
         
         # 1. Metronome
         if self.enable_metronome:
-            t = threading.Thread(target=self.metronome.run, 
-                                 args=(lambda: self.start_time, lambda: self.is_running, self.max_sequence_length), 
-                                 daemon=True)
-            t.start()
-            threads.append(t)
+            self.metronome_thread = threading.Thread(
+                target=self.metronome.run,
+                args=(lambda: self.start_time, lambda: self.is_running, self.max_sequence_length),
+                daemon=True,
+            )
+            self.metronome_thread.start()
+            threads.append(self.metronome_thread)
             
         # 2. Timing (Predictor)
-        t_timing = threading.Thread(target=self._timing_thread, daemon=True)
-        t_timing.start()
-        threads.append(t_timing)
+        self.timing_thread = threading.Thread(target=self._timing_thread, daemon=True)
+        self.timing_thread.start()
+        threads.append(self.timing_thread)
         
         # 3. Playback (Synth for output)
         self.playback = PlaybackThread(self.chord_objects, lambda: self.start_time, 
-                                       self.delay_seconds, self.chord_duration_seconds, self.output_port,
-                                       self.max_sequence_length, lambda: self.is_running)
+                           self.delay_seconds, self.chord_duration_seconds, self.output_port,
+                           self.max_sequence_length, lambda: self.is_running)
         self.playback.start()
         threads.append(self.playback)
         
         # Wait for threads to finish
         try:
-            t_timing.join()
-            self.playback.join()
+            if self.timing_thread:
+                self.timing_thread.join()
+            if self.playback:
+                self.playback.join()
 
         except KeyboardInterrupt:
             logger.warning("[SYSTEM] Stopping pipeline...")
@@ -206,10 +214,28 @@ class RealTimePipeline:
     # Stop the pipeline
     def stop(self):
         self.is_running = False
+
+        # Stop playback first so threads can exit promptly
+        if self.playback: self.playback.stop()
+
+        # Stop listeners / synth
         if self.midi_listener: self.midi_listener.stop()
         if self.synth_listener: self.synth_listener.stop()
         if self.synth: self.synth.cleanup()
-        if hasattr(self, 'playback'): self.playback.stop()
+
+        # Join helper threads if still alive (best-effort, short wait)
+        if self.playback and self.playback.is_alive():
+            self.playback.join(timeout=1.0)
+        if self.metronome_thread and self.metronome_thread.is_alive():
+            self.metronome_thread.join(timeout=1.0)
+        if self.timing_thread and self.timing_thread.is_alive():
+            self.timing_thread.join(timeout=1.0)
+
+        # Shutdown predictor executor to avoid stray threads
+        try:
+            self.predictor.close()
+        except Exception as e:
+            logger.error(f"[SYSTEM] Predictor shutdown error: {e}")
 
     # Get the current sequence of chords
     def get_current_sequence(self) -> List[str]:

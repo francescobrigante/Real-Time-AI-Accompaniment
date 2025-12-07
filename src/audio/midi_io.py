@@ -9,34 +9,6 @@ from src.utils.logger import setup_logger
 
 logger = setup_logger()
 
-def save_chords_to_midi(chord_sequence, filename='output.mid', bpm=120):
-    """Generates a MIDI file from a sequence of Chord objects."""
-    midi_file = mido.MidiFile()
-    track = mido.MidiTrack()
-    midi_file.tracks.append(track)
-    
-    # Set Tempo
-    track.append(mido.MetaMessage('set_tempo', tempo=mido.bpm2tempo(bpm)))
-    ticks_per_beat = midi_file.ticks_per_beat
-    
-    abs_time = 0
-    
-    for chord in chord_sequence:
-        for relative_time, msg in chord.midi_messages:
-             # Convert seconds to ticks
-             ticks = int(relative_time * ticks_per_beat * bpm / 60)
-             
-             new_msg = msg.copy()
-             new_msg.time = max(0, ticks - abs_time)
-             abs_time = ticks
-             track.append(new_msg)
-             
-        # Advance absolute time for next chord
-        abs_time += int(chord.beats_per_bar * ticks_per_beat)
-        
-    midi_file.save(filename)
-    logger.info(f"MIDI saved: {filename}")
-
 def play_chord(chord, output_port_name):
     """Plays a single Chord object on the specified MIDI port."""
     try:

@@ -1,46 +1,6 @@
 import re
 from typing import Tuple, List, Dict
-from src.config import (
-    NOTES, FLAT_TO_SHARP, ROMAN_TO_SEMITONE, 
-    INTERVAL_TO_ROMAN
-)
-
-# =============================== Static Data ===========================================
-
-# Maps each note degree (0-11) to harmonic role
-DEGREE_TO_ROLE = {
-    0: 'T',   # 1st - Tonic
-    1: 'S',   # b2 - Subdominant
-    2: 'T',   # 2nd - Tonic
-    3: 'S',   # b3 - Subdominant
-    4: 'T',   # 3rd - Tonic
-    5: 'S',   # 4th - Subdominant
-    6: 'D',   # b5/#4 - Dominant
-    7: 'D',   # 5th - Dominant
-    8: 'D',   # b6/#5 - Dominant
-    9: 'T',   # 6th - Tonic
-    10: 'D',  # b7 - Dominant
-    11: 'D'   # 7th (major)
-}
-
-# Chord classification by role
-TONIC_CHORDS = ['I', 'vi', 'iii', 'Imaj7', 'I7', 'vi7', 'iii7', 'i', 'i7']
-SUBDOMINANT_CHORDS = ['IV', 'ii', 'IVmaj7', 'IV7', 'ii7', 'iv', 'iv7', 'II', 'II7']
-DOMINANT_CHORDS = ['V', 'vii°', 'V7', 'vii°7', 'III', 'III7', 'v', 'v7']
-
-# All chord options grouped by role
-CHORD_ROLES = {
-    'T': TONIC_CHORDS,
-    'S': SUBDOMINANT_CHORDS,
-    'D': DOMINANT_CHORDS
-}
-
-# Role transition rules with weights (probabilities)
-ROLE_TRANSITIONS = {
-    'T': [('S', 0.45), ('D', 0.35), ('T', 0.20)],  # From Tonic: often to Subdominant or Dominant
-    'S': [('D', 0.50), ('T', 0.30), ('S', 0.20)],  # From Subdominant: often to Dominant, sometimes back to Tonic
-    'D': [('T', 0.65), ('S', 0.25), ('D', 0.10)]   # From Dominant: strong resolution to Tonic, rarely stays on Dominant
-}
+from src.config import NOTES, FLAT_TO_SHARP, ROMAN_TO_SEMITONE, INTERVAL_TO_ROMAN
 
 def normalize_note(note: str) -> str:
     """Normalizes note name to sharp notation (e.g., Bb -> A#)."""

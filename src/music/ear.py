@@ -64,7 +64,7 @@ class Ear:
             return [1.0]
         
         # Exponential growth factor: higher = more emphasis on recent notes and less on old ones
-        alpha = 0.2
+        alpha = 0.3
         
         weights = []
         for i in range(window_size):
@@ -100,37 +100,41 @@ class Ear:
         return scores
     
     # Computes the probability distribution for the next chord based on the played notes
+    # Uses role transitions (T->S->D pattern) to guide harmonic progression
     def get_chord_probability_distribution(self, note_window: List[Tuple[int, float]]) -> Dict[str, float]:
 
-        # 1. Calculate role scores
+        # 1. Calculate role scores from played notes
         role_scores = self._compute_window_scores(note_window)
-        
-        # Initialize chord probabilities
-        chord_probs = {}
-        
-        # Total score to normalize later
-        total_score = sum(role_scores.values())
-        
-        # If no notes or no clear role, return uniform distribution (or empty)
-        if total_score == 0:
+        if sum(role_scores.values()) == 0:
             return {}
         
-        # TODO: refine logic here to improve results
-        # 2. Distribute role score to chords
-        for role, score in role_scores.items():
-            if score > 0:
-                possible_chords = CHORD_ROLES.get(role, [])
-                # given the role for the next chord, distribute the score equally among its candidate chords
-                if possible_chords:
-                    # Split the role's score equally among its candidate chords
-                    prob_per_chord = score / len(possible_chords)
-                    for chord in possible_chords:
-                        chord_probs[chord] = prob_per_chord
-                        
-        # 3. Normalize to ensure sum = 1.0
-        normalized_probs = {k: v / total_score for k, v in chord_probs.items()}
+        # 2. Determine current role and use weighted sampling for next role
+        max_window_role = max(role_scores, key=role_scores.get)
         
-        return normalized_probs
+        note_names = [NOTES[n[0] % 12] for n in note_window]
+        logger.info(f"[EAR] Note window: {note_names} | Scores: T={role_scores['T']:.3f}, S={role_scores['S']:.3f}, D={role_scores['D']:.3f}")
+        
+        if max_window_role not in ROLE_TRANSITIONS:
+            transitions = [('T', 0.33), ('S', 0.33), ('D', 0.34)]
+        else:
+            transitions = ROLE_TRANSITIONS[max_window_role]
+        
+        # Weighted sampling: choose next role probabilistically
+        roles, weights = zip(*transitions)
+        chosen_role = random.choices(roles, weights=weights)[0]
+        
+        logger.info(f"[EAR] Window role: {max_window_role} → Next role: {chosen_role}")
+        
+        # 3. Distribute: 90% to chosen role, 10% to others
+        chord_probs = {}
+        for role in ['T', 'S', 'D']:
+            chords = CHORD_ROLES[role]
+            weight = 0.90 if role == chosen_role else 0.05
+            prob_per_chord = weight / len(chords)
+            for chord in chords:
+                chord_probs[chord] = prob_per_chord
+        
+        return chord_probs
     
     
     # Main function to predict the next chord given the note_window

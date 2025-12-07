@@ -74,7 +74,7 @@ class AIHarmonyRules:
     # Predict next chord distribution using LSTM-based model
     # Can use both deterministic (argmax) and probabilistic sampling
     # Returns either roman numeral or (root, type) tuple based on return_roman flag 
-    def get_next_chord_distribution(self, chord_history: List[str], return_roman: bool = False, deterministic_sampling: bool = True, temperature: float = 1.0) -> Tuple[str, Dict[str, float]]:
+    def get_next_chord_distribution(self, chord_history: List[str], return_roman: bool = False, deterministic_sampling: bool = True, temperature: float = 1.0, top_k: int = 0) -> Tuple[str, Dict[str, float]]:
 
         if not chord_history:
             # Fallback for empty history
@@ -122,7 +122,22 @@ class AIHarmonyRules:
             # Weighted Random Sampling
             # Ensure PAD_IDX is not sampled by setting its probability to 0
             probs_np[PAD_IDX] = 0
-            # Re-normalize probabilities after setting PAD_IDX to 0
+            
+            # --- TOP-K SAMPLING ---
+            if top_k > 0:
+                # Get indices of top k elements
+                # Use argpartition for efficiency (O(n)) vs sort (O(n log n))
+                if top_k < len(probs_np):
+                    ind = np.argpartition(probs_np, -top_k)[-top_k:]
+                    
+                    # Create a mask for zeroing out everything else
+                    mask = np.zeros_like(probs_np, dtype=bool)
+                    mask[ind] = True
+                    
+                    # Apply mask
+                    probs_np[~mask] = 0.0
+
+            # Re-normalize probabilities 
             if probs_np.sum() > 0:
                 probs_np = probs_np / probs_np.sum()
             else: # Fallback if all other probabilities are zero
@@ -138,6 +153,9 @@ class AIHarmonyRules:
         prob_dict = {}
         for idx, prob in enumerate(probs_np):
             if idx == PAD_IDX: continue # Don't return probability for PAD
+            # Only return non-zero probabilities if top-k is used to keep dict clean
+            if top_k > 0 and prob == 0: continue
+            
             chord_name = self.idx_to_chord[idx]
             prob_dict[chord_name] = float(prob)
             
@@ -157,7 +175,10 @@ class AIHarmonyRules:
 
     # precomputes a sequence of chords based on argmax prediction
     # returns list of (roman_numeral, probability_dict) tuples
-    def precompute_sequence(self, start_history: List[str], length: int) -> List[Tuple[str, Dict[str, float]]]:
+    def precompute_sequence(self, start_history: List[str], length: int, 
+                            deterministic_sampling: bool = True,
+                            temperature: float = 1.0,
+                            top_k: int = 0) -> List[Tuple[str, Dict[str, float]]]:
 
         sequence = []
         current_history = list(start_history)
@@ -167,7 +188,9 @@ class AIHarmonyRules:
             predicted_roman, prob_dict = self.get_next_chord_distribution(
                 current_history, 
                 return_roman=True, 
-                deterministic_sampling=True
+                deterministic_sampling=deterministic_sampling,
+                temperature=temperature,
+                top_k=top_k
             )
             
             sequence.append((predicted_roman, prob_dict))

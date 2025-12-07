@@ -201,7 +201,11 @@ class Predictor:
 
         # 5. Use argmax to get the best chord deterministically
         best_roman = max(final_probs, key=final_probs.get)
+        best_prob = final_probs[best_roman]
+        logger.info(f"[ARGMAX] Selected: {best_roman} (prob: {best_prob:.6f})")
         
         # 6. Create new Chord object
         root, chord_type = roman_to_chord(self.key, best_roman)
+        final_chord_name = roman_to_compact(self.key, best_roman)
+        logger.info(f"[ARGMAX] Converted to chord: {final_chord_name} = ({root}, {chord_type})")
         return Chord(root, chord_type, self.bpm, self.beats_per_bar)

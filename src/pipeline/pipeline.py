@@ -139,7 +139,11 @@ class RealTimePipeline:
             # 3. Schedule final chord
             self.chord_objects.append(final_chord)
             
-            # 4. Update History (Important for re-computation!)
+            # 4. Sync key with predictor (in case key detector changed it)
+            if self.key != self.predictor.key:
+                self.key = self.predictor.key
+            
+            # 5. Update History (Important for re-computation!)
             # If the final chord matches the one in the history, then go to next
             # Otherwise, update history by pre-computing again
             final_roman = chord_to_roman(self.key, final_chord.root, final_chord.chord_type)

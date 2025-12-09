@@ -11,6 +11,7 @@ def roman_to_chord(tonic: str, roman: str) -> Tuple[str, str]:
     match = re.match(r'^(VII|VI|V|IV|III|II|I|vii|vi|v|iv|iii|ii|i)([b#]?)(°?)(.*)$', roman)
     
     if not match:
+        print(f"[ERROR] Invalid Roman numeral: {roman} in roman_to_chord()")
         return (tonic, 'major') # Fallback
 
     numeral, accidental, degree_sym, suffix = match.groups()

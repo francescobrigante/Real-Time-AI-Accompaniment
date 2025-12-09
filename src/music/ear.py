@@ -106,7 +106,6 @@ class Ear:
         max_window_role = max(role_scores, key=role_scores.get)
         
         note_names = [NOTES[n[0] % 12] for n in note_window]
-        logger.info(f"[EAR] Note window: {note_names} | Scores: T={role_scores['T']:.3f}, S={role_scores['S']:.3f}, D={role_scores['D']:.3f}")
         
         if max_window_role not in ROLE_TRANSITIONS:
             transitions = [('T', 0.33), ('S', 0.33), ('D', 0.34)]
@@ -117,7 +116,8 @@ class Ear:
         roles, weights = zip(*transitions)
         chosen_role = random.choices(roles, weights=weights)[0]
         
-        logger.info(f"[EAR] Window role: {max_window_role} → Next role: {chosen_role}")
+        logger.info("-" * 60 + "[PREDICTION]" + "-" * 60)
+        logger.info(f"[EAR] Note window: {note_names} | Scores: T={role_scores['T']:.3f}, S={role_scores['S']:.3f}, D={role_scores['D']:.3f} | From {max_window_role} to {chosen_role}")
         
         # 3. Distribute: 90% to chosen role, 10% to others
         chord_probs = {}

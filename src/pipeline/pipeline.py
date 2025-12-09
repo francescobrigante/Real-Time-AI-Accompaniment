@@ -112,7 +112,7 @@ class RealTimePipeline:
         
         # Then set the current chord index to 1
         self.current_chord_idx = 1
-        logger.info(f"[{time.time() - self.start_time:.1f}s] Scheduling chord 1: {self.starting_chord}")
+        logger.info(f"[{time.time() - self.start_time:.1f}s][🎶PLAYING STEP 1🎶] {self.starting_chord}")
         
         while self.is_running and self.current_chord_idx < self.max_sequence_length:
             # Timing
@@ -154,7 +154,7 @@ class RealTimePipeline:
             self.predictor.update_history(final_roman)
             
             self.current_chord_idx += 1
-            logger.info(f"[{time.time() - self.start_time:.1f}s] Final chord {self.current_chord_idx}: {final_chord}")
+            logger.info(f"[{time.time() - self.start_time:.1f}s][🎶PLAYING STEP {self.current_chord_idx}🎶] {final_chord}")
             
             if self.midi_listener: self.midi_listener.clear_note_window()
             
@@ -165,6 +165,7 @@ class RealTimePipeline:
     def start(self):
         if self.is_running: return
         
+        print()
         logger.info(f"[SYSTEM] Starting pipeline in {self.key} @ {self.bpm} BPM")
         self.is_running = True
         

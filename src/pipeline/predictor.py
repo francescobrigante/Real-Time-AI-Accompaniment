@@ -81,7 +81,7 @@ class Predictor:
             # Match
             if prediction_match:
                 chord_name = roman_to_compact(self.key, roman_chord)
-                logger.info(f"[LSTM] Prediction MATCH: {chord_name} ({roman_chord}).")
+                logger.info(f"[LSTM] ✅ Prediction MATCH: {chord_name} ({roman_chord})")
                 self.precomputed_idx += 1
                 
                 # Check refill
@@ -93,8 +93,10 @@ class Predictor:
             else:
                 expected_name = roman_to_compact(self.key, expected_roman) if expected_roman else "None"
                 got_name = roman_to_compact(self.key, roman_chord)
-                logger.info(f"[LSTM] Prediction MISMATCH: LSTM: {expected_name} ({expected_roman}), Ear: {got_name} ({roman_chord}). Recomputing...")
+                logger.info(f"[LSTM] ❌ Prediction MISMATCH: LSTM: {expected_name} ({expected_roman}), Ear: {got_name} ({roman_chord}). Recomputing...")
                 should_recompute = True
+            
+            logger.info("-" * 60 + "[PREDICTION]" + "-" * 60)
                 
         # 3. Fire-and-Forget Computation
         if should_recompute:
@@ -169,8 +171,10 @@ class Predictor:
         if detected_key_info:
             detected_root, confidence = detected_key_info
             if detected_root != self.key:
-                logger.info(f"[KEY DETECTOR] Changed Key: {self.key} -> {detected_root} ({confidence:.2f})")
+                print()
+                logger.info(f"[KEY DETECTOR] !!! Changed Key: {self.key} -> {detected_root} ({confidence:.2f})")
                 self.set_key(detected_root)
+                print()
                 
         # 4. Refine Prediction
         # 4.1. Get AI Distribution for next chord (precomputed)
@@ -201,7 +205,7 @@ class Predictor:
         logger.info(f"[REFINEMENT] Step Combination:")
         logger.info(f"  AI (Chords):  {format_distribution(top_ai, self.key)}")
         logger.info(f"  EAR (Notes):  {format_distribution(top_ear, self.key)}")
-        logger.info(f"  COMBINED:     {format_distribution(top_final, self.key)}\n")
+        logger.info(f"  COMBINED:     {format_distribution(top_final, self.key)}")
 
         if not final_probs:
             return scheduled_chord
@@ -209,10 +213,10 @@ class Predictor:
         # 5. Use argmax to get the best chord deterministically
         best_roman = max(final_probs, key=final_probs.get)
         best_prob = final_probs[best_roman]
-        logger.info(f"[ARGMAX] Selected: {best_roman} (prob: {best_prob:.6f})")
+        logger.info(f"[REFINEMENT] Selected: {best_roman} (prob: {best_prob:.6f})")
         
         # 6. Create new Chord object
         root, chord_type = roman_to_chord(self.key, best_roman)
         final_chord_name = roman_to_compact(self.key, best_roman)
-        logger.info(f"[ARGMAX] Converted to chord: {final_chord_name} = ({root}, {chord_type})")
+        logger.info(f"[REFINEMENT] Converted to: {final_chord_name} = ({root}, {chord_type})")
         return Chord(root, chord_type, self.bpm, self.beats_per_bar)

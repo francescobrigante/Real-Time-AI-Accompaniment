@@ -1,5 +1,11 @@
 # Real-Time AI Accompaniment
 
+<p align="center">
+  <a href="https://drive.google.com/drive/folders/1KKQupkoti1squj6vKVpUubwYWhwCmCqf?usp=drive_link">
+    <img src="https://img.shields.io/badge/Listen%20to%20some%20examples-%F0%9F%8E%A7%20Play-white?style=for-the-badge&logo=google-drive&logoColor=white&labelColor=4285F4" />
+  </a>
+</p>
+
 > **A Real-Time AI Accompanist that listens, understands, and plays with you.**
 
 ![Real-time chord accompaniment generation while soloist is playing some notes](resources/realtime_example.gif)

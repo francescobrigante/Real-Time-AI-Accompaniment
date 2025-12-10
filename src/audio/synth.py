@@ -26,7 +26,7 @@ DEFAULT_GAIN = 1.0                                      # Volume level
 
 # Audio driver selection based on OS (single preferred driver per platform)
 AUDIO_DRIVERS = {
-    'win32': 'dsound',      # Windows # or wasapi
+    'win32': 'dsound',      # Windows (wasapi can be noisy with warnings)
     'darwin': 'coreaudio',  # macOS
     'linux': 'alsa'         # Linux
 }

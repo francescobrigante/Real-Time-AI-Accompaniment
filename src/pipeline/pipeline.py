@@ -199,11 +199,19 @@ class RealTimePipeline:
         threads.append(self.playback)
         
         # Wait for threads to finish
+        # Wait for threads to finish
         try:
-            if self.timing_thread:
-                self.timing_thread.join()
-            if self.playback:
-                self.playback.join()
+            while True:
+                threads_alive = False
+                if self.timing_thread and self.timing_thread.is_alive():
+                    self.timing_thread.join(timeout=0.1)
+                    threads_alive = True
+                if self.playback and self.playback.is_alive():
+                    self.playback.join(timeout=0.1)
+                    threads_alive = True
+                
+                if not threads_alive:
+                    break
 
         except KeyboardInterrupt:
             logger.warning("[SYSTEM] Stopping pipeline...")

@@ -53,15 +53,14 @@ DELAY_START_SECONDS = 2.0
 EMPTY_BARS_COUNT = 1  # Default empty bars for metronome
 CHORDS_TO_PRECOMPUTE = 10 # Number of chords to precompute for the LSTM
 
-EXPONENTIAL_WEIGHT_FACTOR = 0.3 # Exponential weight factor for note weighting in ear module. higher = more emphasis on recent notes
-
 # ------------------------------------------------------------------
 # PREDICTION & SAMPLING
 # ------------------------------------------------------------------
+EXPONENTIAL_WEIGHT_FACTOR = 0.3 # Exponential weight factor for note weighting in ear module. higher = more emphasis on recent notes
 AI_WEIGHT = 0.2                # Weight for LSTM in final prediction (1.0 = AI only, 0.0 = Ear only)
 USE_DETERMINISTIC_SAMPLING = False
-SAMPLING_TOP_K = 5             # Top-K sampling for LSTM
-SAMPLING_TEMPERATURE = 1.2     # Temperature for LSTM sampling (higher = more random)
+SAMPLING_TOP_K = 85             # Top-K sampling for LSTM
+SAMPLING_TEMPERATURE = 0.13     # Temperature for LSTM sampling (higher = more random)
 
 # ------------------------------------------------------------------
 # MUSIC THEORY MAPPINGS

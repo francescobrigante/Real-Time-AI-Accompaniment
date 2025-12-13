@@ -73,7 +73,7 @@ class Conductor:
     def start(self) -> float:
         with self._lock:
             self._start_time = time.time()
-            logger.info(f"[CONDUCTOR] Started at {self._bpm:.1f} BPM")
+            # logger.info(f"[CONDUCTOR] Started at {self._bpm:.1f} BPM")
             return self._start_time
     
     def reset(self):

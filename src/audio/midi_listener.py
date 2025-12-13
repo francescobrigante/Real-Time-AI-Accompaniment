@@ -52,7 +52,7 @@ class MIDIListener:
     def _listen_loop(self):
         try:
             self.midi_port = mido.open_input(self.port_name)
-            logger.info(f"[MIDI] Listening on {self.port_name}")
+            # logger.info(f"[MIDI] Listening on {self.port_name}")
             
             while self.is_running:
                 # Process all pending messages

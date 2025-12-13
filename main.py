@@ -32,7 +32,8 @@ if __name__ == "__main__":
     current_bpm = BPM if use_dynamic_bpm else STATIC_BPM
     
     bpm_mode_str = "Dynamic" if use_dynamic_bpm else f"Static ({STATIC_BPM})"
-    logger.info(f"Starting System: Key={system_key} | StartChord={start_root}{start_quality} | BPM: {bpm_mode_str}")
+    print()
+    logger.info(f"Starting System: Key = {system_key} | Starting Chord = {start_root}{start_quality} | BPM: {bpm_mode_str}")
     
     try:
         pipeline = RealTimePipeline(

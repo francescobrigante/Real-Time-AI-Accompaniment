@@ -44,7 +44,6 @@ def start_audio_driver(synth, logger_prefix="SYNTH"):
     driver = get_platform_audio_driver()
     
     try:
-        logger.info(f"[{logger_prefix}] Starting audio driver: {driver}")
         synth.start(driver=driver)
         logger.info(f"[{logger_prefix}] Audio driver '{driver}' started successfully")
         return True
@@ -101,7 +100,6 @@ class SynthPlayer:
             self.audio_driver = AUDIO_DRIVERS.get(platform, 'coreaudio')
         else:
             self.audio_driver = audio_driver
-        logger.info(f"[SYNTH] Using audio driver: {self.audio_driver}")
         
         # Synth state
         self.synth = None

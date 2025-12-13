@@ -3,6 +3,7 @@
 # ==================================================================================================
 
 import numpy as np
+from src.soundfonts import SOUNDFONT_MAPPING
 
 # ------------------------------------------------------------------
 # MIDI PORTS
@@ -55,9 +56,9 @@ CHORDS_TO_PRECOMPUTE = 10   # Number of chords to precompute each time LSTM is c
 
 # Synth (FluidSynth)
 DEFAULT_SOUNDFONT = "data/GeneralUser-GS.sf2"
-DEFAULT_PROGRAM = 0           # Acoustic Grand Piano
-DEFAULT_CHANNEL = 0           # MIDI channel (0-15)
-DEFAULT_GAIN = 1.0            # Volume level
+DEFAULT_PROGRAM = 0          # Sound for chords
+DEFAULT_CHANNEL = 0                                          # MIDI channel (0-15)
+DEFAULT_GAIN = 1.7                                           # Volume level
 
 AUDIO_DRIVERS = {
     'win32': 'dsound',        # Windows
@@ -93,7 +94,7 @@ DELTA_RETAIN_BPM = 0.1              # Only update if mean differs > DELTA_RETAIN
 # PREDICTION & SAMPLING
 # ------------------------------------------------------------------
 EXPONENTIAL_WEIGHT_FACTOR = 0.3     # Exponential weight factor for note weighting in ear module. higher = more emphasis on recent notes
-AI_WEIGHT = 0.2                     # Weight for LSTM in final prediction (1.0 = AI only, 0.0 = Ear only)
+AI_WEIGHT = 0.1                     # Weight for LSTM in final prediction (1.0 = AI only, 0.0 = Ear only)
 USE_DETERMINISTIC_SAMPLING = False  # Whether to use deterministic sampling in LSTM
 SAMPLING_TOP_K = 85                 # Top-K sampling for LSTM (optuna hyperparam search)
 SAMPLING_TEMPERATURE = 0.13         # Temperature for LSTM sampling (higher = more random)(optuna hyperparam search)
@@ -215,3 +216,6 @@ ROLE_TRANSITIONS = {
 MAJOR_PROFILE = np.array([
     6.50, 1.80, 3.80, 1.80, 5.00, 4.50, 1.80, 5.60, 1.80, 4.00, 1.80, 3.40
 ], dtype=np.float32)
+
+
+

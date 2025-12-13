@@ -4,6 +4,10 @@
   <a href="https://drive.google.com/drive/folders/1KKQupkoti1squj6vKVpUubwYWhwCmCqf?usp=drive_link">
     <img src="https://img.shields.io/badge/Listen%20to%20some%20examples-%F0%9F%8E%A7%20Play-white?style=for-the-badge&logo=google-drive&logoColor=white&labelColor=4285F4" />
   </a>
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+  <a href="https://www.youtube.com/watch?v=rMqet5fySLI">
+    <img src="https://img.shields.io/badge/Check%20a%20live%20demo!-red?style=for-the-badge&logo=youtube&logoColor=white&labelColor=red" />
+  </a>
 </p>
 
 > **A Real-Time AI Accompanist that listens, understands, and plays with you.**
